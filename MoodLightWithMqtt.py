@@ -308,7 +308,7 @@ def AImode():
     for P in W_Plant:
         if P in AudioInput:
             print("Water Plant")
-            client.publish("Arduino/commend", "Watering", qos=0, retain=False)
+            client.publish("Arduino/ommend", "Watering", qos=0, retain=False)
 
     if "불꺼" in AudioInput:
         print("Turn off")
