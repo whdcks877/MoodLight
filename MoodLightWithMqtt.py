@@ -18,6 +18,8 @@ import audiostream as stt
 
 import RPi.GPIO as GPIO
 
+import urllib2
+
 # LED strip configuration:
 LED_COUNT      = 144      # Number of LED pixels.
 LED_PIN        = 18      # GPIO pin connected to the pixels (18 uses PWM!).
@@ -51,6 +53,16 @@ def colorWipe(strip, color, wait_ms=50):
         strip.setPixelColor(i, color)
         strip.show()
         time.sleep(wait_ms/1000.0)
+
+def colorWipe_A(strip, color, wait_ms=50):
+    """Wipe color across display a pixel at a time."""
+    for i in range(strip.numPixels()):
+        if ColorChanged==1 or ModeChanged==1:
+            print("");
+            return
+        strip.setPixelColor(i, color)
+        time.sleep(wait_ms/1000.0)
+    strip.show()
 
 def theaterChase(strip, color, wait_ms=50, iterations=10):
     """Movie theater light style chaser animation."""
@@ -248,7 +260,8 @@ def AImode():
     W_Purple = ["보라"]
     W_Orange = ["주황","오렌지","오랜지"]
     W_Plant = ["화분","물"]
-
+    W_Rainbow = ["무지개"]
+    
     AudioInput = "".join(AudioInput.split(" "))
 
     for R in W_Red:
@@ -308,7 +321,13 @@ def AImode():
     for P in W_Plant:
         if P in AudioInput:
             print("Water Plant")
-            client.publish("Arduino/ommend", "Watering", qos=0, retain=False)
+            client.publish("Arduino/Commend", "Watering", qos=0, retain=False)
+    
+    for R in W_Rainbow:
+        if R in AudioInput:
+            ColorMode = 'RB'
+            
+        
 
     if "불꺼" in AudioInput:
         print("Turn off")
@@ -318,6 +337,13 @@ def AImode():
         print("Turn on")
         LightPower = 1
 
+def internet_on():
+    try:
+        urllib2.urlopen('http://216.58.192.142', timeout=1)
+        return True
+    except urllib2.URLError as err:
+        return False
+
 # Main program logic follows:\
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(2 , GPIO.IN)
@@ -325,7 +351,8 @@ client = mqtt.Client()
 client.username_pw_set("wvewfgbg", "0BwuLSnOSda4")
 client.on_connect = on_connect
 client.on_message = on_message
-
+while (internet_on() == False):
+    print("network error")
 client.connect(MQTT_SERVER, 17298, 60)
 
 
@@ -368,7 +395,7 @@ if __name__ == '__main__':
                 colorWipe(strip, Color(0, 0, 0),0)
 
             if GPIO.input(2)==0:
-                colorWipe(strip, Color(100, 100, 100),0)
+                colorWipe_A(strip, Color(100, 100, 100),0)
                 AImode()
             #TODO
 
